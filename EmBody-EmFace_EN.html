@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>EmBody/EmFace</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <script src="./jspsych.js"></script>
+    <script src="./plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="./plugins/jspsych-html-button-response.js"></script>
+    <script src="./plugins/jspsych-html-slider-response.js"></script>
+    <script src="./plugins/jspsych-image-button-response.js"></script>
+    <script src="./plugins/jspsych-survey-text.js"></script>
+    <script src="./plugins/jspsych-video.js"></script>
+    <link rel="stylesheet" href="./css/jspsych.css"></link>
+  </head>
+    <body></body>
+  <script>
+
+
+/* ******************************** */
+/*                                  */
+/*   PROJECT: EmBody, EmFace       */
+/*   AUTHOR: 	Lea L. Lott           */
+/*   RELEASE:	2021                  */
+/*                                  */
+/* ******************************** */
+
+
+  /* Ask for participant ID */
+  var subject_EN = {
+    type: "survey-text",
+    button_label: "continue",
+    questions: [
+      {prompt: "Participant ID:", name: 'id', required: true} ],
+      data: {task_part: 'id_question'},
+    on_finish: function(data){
+      var answer = JSON.parse(data.responses);
+      var participantID = answer.Q0;
+      jsPsych.data.addProperties({participantCode: participantID});
+    }
+  }
+
+
+ /* *********************************************** */
+ /*                                                 */
+ /*          S E T   U P  E M B O D Y               */
+ /*                                                 */
+ /* *********************************************** */
+
+   /* Set up instruction screens */
+
+   embody_instructions_EN = {
+     timeline: [
+      { type: "html-button-response",
+        choices: ["continue"],
+        stimulus: "<p><b>Task 'Body language'</b></p>" +
+                "<p>During this task, you will watch short videos <br>that will display different body movements.</p><br><br>",
+          response_ends_trial: true
+      },
+      { type: "image-button-response",
+        choices: ["continue"],
+        stimulus: "embody/EmBody_MotionCapture.jpg",
+        stimulus_height: 400,
+        prompt: "<p>The body movements were filmed via motion capture.<br> This is a method that represents an actor's body by means of 15 white dots <br>that are attached to main joints and the head.</p>" +
+                "<p>In the videos you will only see these dots, <br>but not the actor's whole body.<br><br></p>",
+          response_ends_trial: true
+       },
+       { type: "html-button-response",
+        choices: ["continue"],
+        stimulus: "<p>Please choose the <u>emotional state</u> displayed in the video <br>(anger, joy, or neither (= neutral)).</p>" +
+        "<p>Press 'continue' to see practice trials.</p><br><br>",
+        response_ends_trial: true
+       }
+     ]
+   }
+
+     /* Set up practice trial */
+     var embody_practice_EN = {
+       timeline: [
+         { type: "video",
+           width: 1000,
+           start: 0,
+           stop: 1500,
+           trial_duration: 1500,
+           sources: jsPsych.timelineVariable('video')
+         },
+         { type: "html-button-response",
+           stimulus: ["<p>Which emotion was portrayed in the video?<br><br><br></p>"],
+           choices: ["&nbsp;ANGRY&nbsp;", "NEUTRAL", "&nbsp;HAPPY&nbsp;"],
+           button_html: [   '<div class="embody"><button class="btn">%choice%</button></div>',
+                            '<div class="embody"><button class="btn">%choice%</button></div>',
+                            '<div class="embody"><button class="btn">%choice%</button></div>' ],
+           margin_horizontal: "40px",
+           margin_vertical: "40px",
+           response_ends_trial: true
+         }
+       ],
+       timeline_variables: [
+         {video: ['embody/BP01.mp4']},
+         {video: ['embody/BP02.mp4']}
+       ]
+     }
+
+     var embody_ready_EN = {
+       type: "html-button-response",
+       choices: ["weiter"],
+       stimulus: "<p>You have completed the practice trials. Press 'continue' to initiate the task.</p><br><br>",
+       response_ends_trial: true
+     }
+
+     /*
+     Set up the task:
+     (1) present stimulus video
+     (2) ask which emotion was shown
+     */
+
+   var embody_main_EN = {
+     timeline: [
+       { type: "video",
+         width: 1000,
+         start: 0,
+         stop: 1500,
+         trial_duration: 1500,
+         sources: jsPsych.timelineVariable('video')
+       },
+       { type: "html-button-response",
+         stimulus: ["<p>Which emotion was portrayed in the video?<br><br><br></p>"],
+         choices: ["&nbsp;ANGRY&nbsp;", "NEUTRAL", "&nbsp;HAPPY&nbsp;"],
+         button_html: [   '<div class="embody"><button class="btn">%choice%</button></div>',
+                          '<div class="embody"><button class="btn">%choice%</button></div>',
+                          '<div class="embody"><button class="btn">%choice%</button></div>' ],
+        margin_horizontal: "40px",
+        margin_vertical: "40px",
+         data: {
+           task: 'EmBody',
+           correct_response_numeric: jsPsych.timelineVariable('correct_response_numeric'),
+           correct_response_string: jsPsych.timelineVariable('correct_response_string')
+         },
+         response_ends_trial: true,
+         on_finish: function(){
+           var data = jsPsych.data.get().last(1).values()[0];
+           resp = data.button_pressed;
+           if(resp == data.correct_response_numeric){      /* check if participant selected target emotion*/
+             data.correct = true;
+             console.log("correct");
+           } else {
+             data.correct = false;
+             console.log("false");
+           }
+         }
+       }
+     ],
+     timeline_variables: [
+       {video: ['embody/B01.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B02.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B03.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B04.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B05.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B06.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B07.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B08.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B09.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B10.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B11.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B12.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B13.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B14.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B15.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B16.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B17.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B18.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B19.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B20.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B21.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B22.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B23.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B24.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B25.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B26.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B27.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B28.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B29.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B30.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B31.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B32.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B33.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B34.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B35.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B36.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B37.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B38.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B39.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+       {video: ['embody/B40.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+       {video: ['embody/B41.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+       {video: ['embody/B42.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'}
+     ]
+   }
+
+
+ /* *********************************************** */
+ /*                                                 */
+ /*                  E M F A C E                   */
+ /*                                                 */
+ /* *********************************************** */
+
+/* set up the instructions */
+
+var emface_instructions_EN = {
+  timeline: [
+   { type: "html-button-response",
+     choices: ["continue"],
+     stimulus: "<p><b>Task 'Facial expressions'</b></p>" +
+             "<p>During this task, you will watch short videos <br>that will display different facial expressions.</p><br><br>",
+       response_ends_trial: true
+   },
+    { type: "html-button-response",
+     choices: ["continue"],
+     stimulus: "<p>Please choose the <u>emotional state</u> displayed in the video <br>(anger, joy, or neither (= neutral)).</p>" +
+     "<p>Press 'continue' to see practice trials.</p><br><br>",
+     response_ends_trial: true
+    }
+  ]
+}
+
+   /* set up the practce trial like a miniature version of the original task with the conditional loop for intensity ratings */
+  var emface_practice_EN = {
+       timeline: [
+       { type: "video",
+         width: 1000,
+         start: 0,
+         stop: 1500,
+         trial_duration: 1500,
+         sources: jsPsych.timelineVariable('facevids')
+       },
+       { type: "html-button-response",
+         stimulus: ["<p>Which emotion was portrayed in the video?<br><br><br></p>"],
+         choices: ["&nbsp;ANGRY&nbsp;", "NEUTRAL", "&nbsp;HAPPY&nbsp;"],
+         button_html: [   '<div class="embody"><button class="btn">%choice%</button></div>',
+                          '<div class="embody"><button class="btn">%choice%</button></div>',
+                          '<div class="embody"><button class="btn">%choice%</button></div>' ],
+         margin_horizontal: "40px",
+         margin_vertical: "40px",
+         response_ends_trial: true
+       }
+     ],
+       timeline_variables: [
+         {facevids: ['emface/FP01.mp4']},
+         {facevids: ['emface/FP02.mp4']}
+       ]
+     }
+
+     var emface_ready_EN = {
+       type: "html-button-response",
+       choices: ["continue"],
+       stimulus: "<p>You have completed the practice trials. Press 'continue' to initiate the task.</p><br><br>",
+       response_ends_trial: true
+     }
+
+     var emface_main_EN = {
+       timeline: [
+         { type: "video",
+           width: 1000,
+           start: 0,
+           stop: 1500,
+           trial_duration: 1500,
+           sources: jsPsych.timelineVariable('faces')
+         },
+         { type: "html-button-response",
+           stimulus: ["<p>Which emotion was portrayed in the video?<br><br><br></p>"],
+           choices: ["&nbsp;ANGRY&nbsp;", "NEUTRAL", "&nbsp;HAPPY&nbsp;"],
+           button_html: [   '<div class="embody"><button class="btn">%choice%</button></div>',
+                            '<div class="embody"><button class="btn">%choice%</button></div>',
+                            '<div class="embody"><button class="btn">%choice%</button></div>' ],
+          margin_horizontal: "40px",
+          margin_vertical: "40px",
+          data: {
+            task: 'EmFace',
+            correct_response_numeric: jsPsych.timelineVariable('correct_response_numeric'),
+            correct_response_string: jsPsych.timelineVariable('correct_response_string')
+          },
+          response_ends_trial: true,
+          on_finish: function(){
+            var data = jsPsych.data.get().last(1).values()[0];
+            resp = data.button_pressed;
+            if(resp == data.correct_response_numeric){      /* check if participant selected target emotion*/
+              data.correct = true;
+              console.log("correct");
+            } else {
+              data.correct = false;
+              console.log("false");
+            }
+          }
+        }
+      ],
+      timeline_variables: [
+         {faces: ['emface/F01.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F02.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F03.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F04.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F05.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F06.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F07.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F08.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F09.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F10.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F11.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F12.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F13.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F14.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F15.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F16.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F17.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F18.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F19.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F20.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F21.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F22.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F23.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F24.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F25.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F26.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F27.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F28.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F29.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F30.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F31.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F32.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F33.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F34.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F35.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F36.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F37.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F38.mp4'], correct_response_numeric: 2, correct_response_string: 'HAPPY'},
+         {faces: ['emface/F39.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'},
+         {faces: ['emface/F40.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F41.mp4'], correct_response_numeric: 0, correct_response_string: 'ANGRY'},
+         {faces: ['emface/F42.mp4'], correct_response_numeric: 1, correct_response_string: 'NEUTRAL'}
+       ]
+     }
+
+   var byebye_EN = {
+     timeline: [
+       { type: "html-keyboard-response",
+         stimulus: "<p>You have completed the task. Computing results ...<br><br><br><span style='color:green;'>▅ </span><span style='color:white;'>▅ ▅ ▅ ▅</span></p>",
+         trial_duration: 500,
+         choices: jsPsych.NO_KEYS
+       },
+       { type: "html-keyboard-response",
+         stimulus: "<p>You have completed the task. Computing results ...<br><br><br><span style='color:green;'>▅ ▅ </span><span style='color:white;'>▅ ▅ ▅</span></p>",
+         trial_duration: 500,
+         choices: jsPsych.NO_KEYS
+       },
+       { type: "html-keyboard-response",
+         stimulus: "<p>You have completed the task. Computing results ...<br><br><br><span style='color:green;'>▅ ▅ ▅ </span><span style='color:white;'>▅ ▅</span></p>",
+         trial_duration: 500,
+         choices: jsPsych.NO_KEYS
+       },
+       { type: "html-keyboard-response",
+         stimulus: "<p>You have completed the task. Computing results ...<br><br><br><span style='color:green;'>▅ ▅ ▅ ▅ </span><span style='color:white;'>▅</span></p>",
+         trial_duration: 500,
+         choices: jsPsych.NO_KEYS
+       },
+       { type: "html-keyboard-response",
+         stimulus: "<p>You have completed the task. Computing results ...<br><br><br><span style='color:green;'>▅ ▅ ▅ ▅ ▅</span><span style='color:white;'></span></p>",
+         trial_duration: 500,
+         choices: jsPsych.NO_KEYS
+       }
+     ]
+   }
+
+
+/* prepare tasks for presentation */
+var embody_EN = { timeline: [embody_instructions_EN, embody_practice_EN, embody_ready_EN, embody_main_EN] }
+var emface_EN = { timeline: [emface_instructions_EN, emface_practice_EN, emface_ready_EN, emface_main_EN] }
+
+
+/* ask for tasks to present (only EmBody - only EmFace - both, EmBody first - both, EmFace first) */
+var tasks_EN = {
+  timeline: [
+    { type: "html-button-response",
+    choices: ["EmBody, EmFace", "EmFace, EmBody", "only EmBody", "only EmFace"],
+    stimulus: '<p>Select task order:</p><br><br>',
+      response_ENds_trial: true
+    },
+    { timeline: [subject_EN, embody_EN, emface_EN, byebye_EN],
+        conditional_function: function(){
+          var data = jsPsych.data.get().last(1).values()[0];
+          resp = data.button_pressed;
+          if(resp==0){      /* select if user clicked English */
+            return true;
+          } else {
+            return false;
+          }
+        }
+    },
+    { timeline: [subject_EN, emface_EN, embody_EN, byebye_EN],
+        conditional_function: function(){
+          var data = jsPsych.data.get().last(1).values()[0];
+          resp = data.button_pressed;
+          if(resp==1){      /* select if user clicked English */
+            return true;
+          } else {
+            return false;
+          }
+        }
+    },
+    { timeline: [subject_EN, embody_EN, byebye_EN],
+        conditional_function: function(){
+          var data = jsPsych.data.get().last(1).values()[0];
+          resp = data.button_pressed;
+          if(resp==2){      /* select if user clicked English */
+            return true;
+          } else {
+            return false;
+          }
+        }
+    },
+    { timeline: [subject_EN, emface_EN, byebye_EN],
+        conditional_function: function(){
+          var data = jsPsych.data.get().last(1).values()[0];
+          resp = data.button_pressed;
+          if(resp==3){      /* select if user clicked English */
+            return true;
+          } else {
+            return false;
+          }
+        }
+    }
+  ]
+}
+
+ /* *********************************************** */
+ /*                                                 */
+ /*               L A S T   S T E P S               */
+ /*                                                 */
+ /* *********************************************** */
+
+var display_results_EN = {
+  type: "html-button-response",
+  choices: ["Save raw data as CSV"],
+  response_ends_trial: true,
+  stimulus: function() {
+    /* compute hits */
+    var hits_embody = jsPsych.data.get().filter({task: 'EmBody', correct: true}).count();
+    var hits_embody_angry = jsPsych.data.get().filter({task: 'EmBody', correct_response_numeric: 0, correct: true}).count();
+    var hits_embody_happy = jsPsych.data.get().filter({task: 'EmBody', correct_response_numeric: 2, correct: true}).count();
+    var hits_embody_neutral = jsPsych.data.get().filter({task: 'EmBody', correct_response_numeric: 1, correct: true}).count();
+    var hits_emface = jsPsych.data.get().filter({task: 'EmFace', correct: true}).count();
+    var hits_emface_angry = jsPsych.data.get().filter({task: 'EmFace', correct_response_numeric: 0, correct: true}).count();
+    var hits_emface_happy = jsPsych.data.get().filter({task: 'EmFace', correct_response_numeric: 2, correct: true}).count();
+    var hits_emface_neutral = jsPsych.data.get().filter({task: 'EmFace', correct_response_numeric: 1, correct: true}).count();
+    /* compute omissions */
+    var omissions_embody_angry = jsPsych.data.get().filter({task: 'EmBody', correct_response_numeric: 0, correct: false}).count();
+    var omissions_embody_happy = jsPsych.data.get().filter({task: 'EmBody', correct_response_numeric: 2, correct: false}).count();
+    var omissions_embody_neutral = jsPsych.data.get().filter({task: 'EmBody', correct_response_numeric: 1, correct: false}).count();
+    var omissions_emface_angry = jsPsych.data.get().filter({task: 'EmFace', correct_response_numeric: 0, correct: false}).count();
+    var omissions_emface_happy = jsPsych.data.get().filter({task: 'EmFace', correct_response_numeric: 2, correct: false}).count();
+    var omissions_emface_neutral = jsPsych.data.get().filter({task: 'EmFace', correct_response_numeric: 1, correct: false}).count();
+    /* compute false alarms */
+    var falsealarms_embody_angry = jsPsych.data.get().filter({task: 'EmBody', button_pressed: 0, correct: false}).count();
+    var falsealarms_embody_happy = jsPsych.data.get().filter({task: 'EmBody', button_pressed: 2, correct: false}).count();
+    var falsealarms_embody_neutral = jsPsych.data.get().filter({task: 'EmBody', button_pressed: 1, correct: false}).count();
+    var falsealarms_emface_angry = jsPsych.data.get().filter({task: 'EmFace', button_pressed: 0, correct: false}).count();
+    var falsealarms_emface_happy = jsPsych.data.get().filter({task: 'EmFace',  button_pressed: 2, correct: false}).count();
+    var falsealarms_emface_neutral = jsPsych.data.get().filter({task: 'EmFace',  button_pressed: 1, correct: false}).count();
+    /* prepare display of results */
+    return "<table style='text-align: center; padding: 30px;'>" +
+    "<tr><td></td><td style='text-align:left;'>Correct</td><td>Omissions</td><td>False Alarms</td></tr>" +
+    "<tr><td style='text-align:left;'>EmBody total:</td><td>"+hits_embody+"</td><td>-</td><td>-</td></tr>" +
+    "<tr><td style='text-align:left;'>EmBody-Angry:</td><td>"+hits_embody_angry+"</td><td>"+omissions_embody_angry+"</td><td>"+falsealarms_embody_angry+"</td></tr>" +
+    "<tr><td style='text-align:left;'>EmBody-Happy:</td><td>"+hits_embody_happy+"</td><td>"+omissions_embody_happy+"</td><td>"+falsealarms_embody_happy+"</td></tr>" +
+    "<tr><td style='text-align:left;'>EmBody-Neutral:</td><td>"+hits_embody_neutral+"</td><td>"+omissions_embody_neutral+"</td><td>"+falsealarms_embody_neutral+"</td></tr>" +
+    "<tr><td>&ensp;<td></tr>" +
+    "<tr><td style='text-align:left;'>EmFace total:</td><td>"+hits_emface+"</td><td>-</td><td>-</td></tr>" +
+    "<tr><td style='text-align:left;'>EmFace-Angry:</td><td>"+hits_emface_angry+"</td><td>"+omissions_emface_angry+"</td><td>"+falsealarms_emface_angry+"</td></tr>" +
+    "<tr><td style='text-align:left;'>EmFace-Happy:</td><td>"+hits_emface_happy+"</td><td>"+omissions_emface_happy+"</td><td>"+falsealarms_emface_happy+"</td></tr>" +
+    "<tr><td style='text-align:left;'>EmFace-Neutral:</td><td>"+hits_emface_neutral+"</td><td>"+omissions_emface_neutral+"</td><td>"+falsealarms_emface_neutral+"</td></tr>" +
+    "</table><br><br>" +
+    "<p>! This table is not being saved automatically.<br>Please print this page or copy and paste this table into a blank document.</p><br><br>";
+   }
+}
+
+  var timeline = [];
+  timeline.push(tasks_EN);
+  timeline.push(display_results_EN);
+
+  /* *********************************************** */
+  /*                                                 */
+  /*              T I M E L I N E                    */
+  /*                                                 */
+  /* *********************************************** */
+
+  jsPsych.init({
+    timeline: timeline,
+    on_finish: function() {
+        var id = jsPsych.data.get().values()[1].participantCode;
+        var file_name = 'EmBodyEmFace_' + id + '_data.csv';
+	      jsPsych.data.get().localSave('csv',file_name);
+          }
+        }
+    )
+  </script>
+</html>
